@@ -1,0 +1,11 @@
+[[constraint]]
+    name = "github.com/xgfone/go-tools"
+    version = "v2.4.0"
+
+[[constraint]]
+    name = "github.com/gorilla/mux"
+    version = "v1.6.0"
+
+[[constraint]]
+    name = "github.com/samuel/go-zookeeper"
+    revision = "9a96098268ef555eb1f04d8b1ee813d0a87e5089"
