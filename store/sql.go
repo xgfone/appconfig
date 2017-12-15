@@ -83,7 +83,7 @@ func (s *sqlStore) Init(conf string) (err error) {
 	if maxIdleConnNum > 0 {
 		engine.SetMaxIdleConns(maxIdleConnNum)
 	}
-	if connTimeout >= 0 {
+	if connTimeout > 0 {
 		engine.SetConnMaxLifetime(time.Duration(connTimeout) * time.Second)
 	}
 	if showSQL != nil {
