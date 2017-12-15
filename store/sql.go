@@ -198,10 +198,7 @@ func (s *sqlStore) GetAllDcAndEnvs() (map[string][]string, error) {
 	return result, nil
 }
 
-// SetKeyValue sets the key-value in dc, evn and app.
-//
-// If the key has not existed, it will create it; Or append it with a new
-// timestamp.
+// SetKeyValue sets the key-value in dc, evn and app with a new timestamp.
 func (s *sqlStore) SetKeyValue(dc, env, app, key, value string) error {
 	sql := "INSERT INTO `%s`(`dc`, `env`, `app`, `key`, `time`, `value`) VALUES(?, ?, ?, ?, ?, ?)"
 	sql = fmt.Sprintf(sql, s.table)
