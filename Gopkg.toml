@@ -9,3 +9,11 @@
 [[constraint]]
     name = "github.com/samuel/go-zookeeper"
     revision = "9a96098268ef555eb1f04d8b1ee813d0a87e5089"
+
+[[constraint]]
+    name = "github.com/go-xorm/xorm"
+    version = "v0.6.4"
+
+[[constraint]]
+    name = "github.com/go-sql-driver/mysql"
+    version = "v1.3"
