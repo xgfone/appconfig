@@ -266,6 +266,11 @@ func DeleteKey(w http.ResponseWriter, r *http.Request) (err error) {
 	err = backend.DeleteConfig(vs["dc"], vs["env"], vs["app"], vs["key"], t)
 	printLog(err, "Delete dc=%s, env=%s, app=%s, key=%s, time=%d", vs["dc"],
 		vs["env"], vs["app"], vs["key"], t)
+
+	// Delete the callbacks
+	if err == nil && t < 1 {
+		err = backend.DeleteCallback(vs["dc"], vs["env"], vs["app"], vs["key"], "")
+	}
 	return renderError(w, err)
 }
 
