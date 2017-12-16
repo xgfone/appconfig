@@ -44,6 +44,12 @@ func init() {
 	admin.Handle("/{dc}/{env}/{app}", wrap(DeleteApp)).Methods("DELETE")
 	admin.Handle("/{dc}/{env}/{app}/{key}", wrap(DeleteKey)).Methods("DELETE")
 
+	// Callback Notification
+	cb := v1.PathPrefix("/callback").Subrouter()
+	cb.Handle("/{dc}/{env}/{app}/{key}", wrap(GetCallback)).Methods("GET")
+	cb.Handle("/{dc}/{env}/{app}/{key}/{id}", wrap(AddCallback)).Methods("POST")
+	cb.Handle("/{dc}/{env}/{app}/{key}", wrap(DeleteCallback)).Methods("DELETE")
+
 	handler = r
 }
 
@@ -261,4 +267,43 @@ func DeleteKey(w http.ResponseWriter, r *http.Request) (err error) {
 	printLog(err, "Delete dc=%s, env=%s, app=%s, key=%s, time=%d", vs["dc"],
 		vs["env"], vs["app"], vs["key"], t)
 	return renderError(w, err)
+}
+
+// GetCallback returns all the callback notifications.
+func GetCallback(w http.ResponseWriter, r *http.Request) (err error) {
+	vs := mux.Vars(r)
+	v, err := backend.GetCallback(vs["dc"], vs["env"], vs["app"], vs["key"])
+	if err != nil {
+		return renderError(w, err)
+	}
+
+	return http2.JSON(w, http.StatusOK, map[string]interface{}{"callback": v})
+}
+
+// AddCallback adds a callback notification for a certain app key.
+func AddCallback(w http.ResponseWriter, r *http.Request) (err error) {
+	body, err := http2.GetBody(r)
+	if err != nil {
+		return http2.Error(w, err, http.StatusBadRequest)
+	}
+
+	vs := mux.Vars(r)
+	err = backend.AddCallback(vs["dc"], vs["env"], vs["app"], vs["key"],
+		vs["id"], string(body))
+	if err != nil {
+		return renderError(w, err)
+	}
+	return nil
+}
+
+// DeleteCallback deletes all callback notifications or a special one
+// of a certain app key.
+func DeleteCallback(w http.ResponseWriter, r *http.Request) (err error) {
+	id := r.URL.Query().Get("id")
+	vs := mux.Vars(r)
+	err = backend.DeleteCallback(vs["dc"], vs["env"], vs["app"], vs["key"], id)
+	if err != nil {
+		return renderError(w, err)
+	}
+	return nil
 }
