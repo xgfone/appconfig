@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/xgfone/appconfig/logger"
 	"github.com/xgfone/appconfig/store"
 	"github.com/xgfone/go-tools/net2/http2"
 )
@@ -44,6 +43,7 @@ func init() {
 	admin.Handle("/{dc}/{env}", wrap(DeleteEnv)).Methods("DELETE")
 	admin.Handle("/{dc}/{env}/{app}", wrap(DeleteApp)).Methods("DELETE")
 	admin.Handle("/{dc}/{env}/{app}/{key}", wrap(DeleteKey)).Methods("DELETE")
+
 	handler = r
 }
 
@@ -57,22 +57,13 @@ func renderError(w http.ResponseWriter, err error) error {
 	case store.ErrNoDcAndEnv:
 		return http2.String(w, http.StatusBadRequest, "no dc and env")
 	default:
-		logger.Error("Get an error: %s", err)
+		logger.Errorf("Get an error: %s", err)
 		if e, ok := err.(http2.HTTPError); ok {
 			return http2.Error(w, e, e.Code)
 		}
 		return http2.Error(w, err)
 	}
 	return nil
-}
-
-func printLog(err error, format string, args ...interface{}) {
-	if err == nil {
-		logger.Info(format, args...)
-	} else {
-		args = append(args, err)
-		logger.Error(format+": %s", args...)
-	}
 }
 
 // AppGetConfig returns the app config information.

@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/samuel/go-zookeeper/zk"
-	"github.com/xgfone/appconfig/logger"
 	"github.com/xgfone/go-tools/lifecycle"
 	"github.com/xgfone/go-tools/types"
+	"github.com/xgfone/log"
 )
 
 func init() {
@@ -116,7 +116,7 @@ func (z *zkStore) Init(conf string) (err error) {
 		return fmt.Errorf("no zk addr")
 	}
 
-	z.zk, err = NewZkConn(adds, timeout, ZkLoggerFunc(logger.Info))
+	z.zk, err = NewZkConn(adds, timeout, ZkLoggerFunc(log.Infof))
 	z.root = root
 	return
 }

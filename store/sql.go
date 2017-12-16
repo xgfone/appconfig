@@ -8,6 +8,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
 	"github.com/xgfone/go-tools/types"
+	"github.com/xgfone/log"
 )
 
 func init() {
@@ -76,6 +77,8 @@ func (s *sqlStore) Init(conf string) (err error) {
 	if err != nil {
 		return err
 	}
+
+	engine.SetLogger(xorm.NewSimpleLogger(log.Std.Writer()))
 
 	if maxOpenConnNum > 0 {
 		engine.SetMaxOpenConns(maxOpenConnNum)

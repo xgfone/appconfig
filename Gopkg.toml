@@ -3,6 +3,10 @@
     version = "v2.4.0"
 
 [[constraint]]
+    name = "github.com/xgfone/log"
+    branch = "master"
+
+[[constraint]]
     name = "github.com/gorilla/mux"
     version = "v1.6.0"
 
