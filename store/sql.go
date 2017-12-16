@@ -20,6 +20,7 @@ type sqlStore struct {
 	driver  string
 	table   string
 	cbtable string
+	crtable string
 	engine  *xorm.Engine
 }
 
@@ -27,13 +28,23 @@ type sqlStore struct {
 func NewSQLStore(driver string, table ...string) Store {
 	tableName := "appconfig"
 	cbtableName := "appcallback"
+	cbResultTableName := "appresult"
 	if len(table) == 1 {
 		tableName = table[0]
-	} else if len(table) > 1 {
+	} else if len(table) == 2 {
 		tableName = table[0]
 		cbtableName = table[1]
+	} else if len(table) > 2 {
+		tableName = table[0]
+		cbtableName = table[1]
+		cbResultTableName = table[2]
 	}
-	return &sqlStore{driver: driver, table: tableName, cbtable: cbtableName}
+	return &sqlStore{
+		driver:  driver,
+		table:   tableName,
+		cbtable: cbtableName,
+		crtable: cbResultTableName,
+	}
 }
 
 func (s *sqlStore) Init(conf string) (err error) {
@@ -353,8 +364,8 @@ func (s *sqlStore) GetAllValues(dc, env, app, key string, page, number, from,
 }
 
 func (s *sqlStore) AddCallback(dc, env, app, key, id, callback string) error {
-	sql := "INSERT INTO `%s`(`dc`, `env`, `app`, `key`, `id`, `callback`) VALUES(?, ?, ?, ?, ?, ?)"
-	sql = fmt.Sprintf(sql, s.cbtable)
+	q := "INSERT INTO `%s`(`dc`,`env`,`app`,`key`,`cbid`,`callback`)VALUES(?,?,?,?,?,?)"
+	sql := fmt.Sprintf(q, s.cbtable)
 	_, err := s.engine.Exec(sql, dc, env, app, key, id, callback)
 	return err
 }
@@ -363,8 +374,8 @@ func (s *sqlStore) GetCallback(dc, env, app, key string) (map[string]string,
 	error) {
 
 	where := "`dc`=? AND `env`=? AND `app`=? AND `key`=?"
-	vs, err := s.engine.Select("`id`, `callback`").Table(s.cbtable).Where(where,
-		dc, env, app, key).QueryString()
+	vs, err := s.engine.Select("`cbid`, `callback`").Table(s.cbtable).Where(
+		where, dc, env, app, key).QueryString()
 	if err != nil {
 		return nil, err
 	}
@@ -380,10 +391,34 @@ func (s *sqlStore) DeleteCallback(dc, env, app, key, id string) error {
 	where := "`dc`=? AND `env`=? AND `app`=? AND `key`=?"
 	args := []interface{}{dc, env, app, key}
 	if id != "" {
-		where += " AND `id`=?"
+		where += " AND `cbid`=?"
 		args = append(args, id)
 	}
 	sql := fmt.Sprintf("DELETE FROM `%s` WHERE %s", s.cbtable, where)
 	_, err := s.engine.Exec(sql, args...)
 	return err
+}
+
+func (s *sqlStore) AddCallbackResult(dc, env, app, key, id, cb, r string) error {
+	q := "INSERT INTO `%s`(`dc`,`env`,`app`,`key`,`cbid`,`callback`,`result` VALUES(?,?,?,?,?,?)"
+	sql := fmt.Sprintf(q, s.crtable)
+	_, err := s.engine.Exec(sql, dc, env, app, key, id, cb, r)
+	return err
+}
+
+func (s *sqlStore) GetCallbackResult(dc, env, app, key, id string) (
+	[][2]string, error) {
+
+	where := "`dc`=? AND `env`=? AND `app`=? AND `key`=? AND `cbid`=?"
+	vs, err := s.engine.Select("`callback`, `result`").Table(s.crtable).Where(
+		where, dc, env, app, key, id).Desc("`id`").Limit(20, 0).QueryString()
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([][2]string, len(vs))
+	for i, v := range vs {
+		result[i] = [2]string{v["callback"], v["result"]}
+	}
+	return result, nil
 }

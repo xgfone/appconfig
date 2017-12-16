@@ -1,6 +1,7 @@
 package store
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -80,6 +81,14 @@ func (z *zkStore) cbPath(f string, args ...interface{}) string {
 		return fmt.Sprintf("%s/callback%s", z.root, path)
 	}
 	return "/callback" + path
+}
+
+func (z *zkStore) cbResultPath(f string, args ...interface{}) string {
+	path := fmt.Sprintf(f, args...)
+	if z.root != "/" {
+		return fmt.Sprintf("%s/cbresult%s", z.root, path)
+	}
+	return "/cbresult" + path
 }
 
 func (z *zkStore) Init(conf string) (err error) {
@@ -483,4 +492,63 @@ func (z *zkStore) DeleteCallback(dc, env, app, key, id string) error {
 		return nil
 	}
 	return err
+}
+
+func (z *zkStore) getCbResultPath(dc, env, app, key string) string {
+	return z.cbResultPath("/%s|%s|%s|%s", dc, env, app, key)
+}
+
+func (z *zkStore) AddCallbackResult(dc, env, app, key, id, cb, r string) error {
+	path := z.getCbResultPath(dc, env, app, key)
+	if err := z.ensurePath(path); err != nil {
+		return err
+	}
+
+	path = fmt.Sprintf("%s/%s", path, id)
+	if err := z.ensurePath(path); err != nil {
+		return err
+	}
+
+	path = fmt.Sprintf("%s/%d", path, time.Now().Unix())
+	data, err := json.Marshal([]string{cb, r})
+	if err != nil {
+		return err
+	}
+	_, err = z.zk.Create(path, data, z.flags, z.acl)
+	return err
+}
+
+func (z *zkStore) GetCallbackResult(dc, env, app, key, id string) (
+	[][2]string, error) {
+
+	path := z.getCbResultPath(dc, env, app, key)
+	path = fmt.Sprintf("%s/%s", path, id)
+
+	cs, _, err := z.zk.Children(path)
+	if err != nil {
+		return nil, err
+	}
+	if len(cs) > 20 {
+		end := len(cs)
+		start := end - 20
+		if start < 0 {
+			start = 0
+		}
+		cs = cs[start:end]
+	}
+
+	result := make([][2]string, len(cs))
+	for i, c := range cs {
+		data, _, err := z.zk.Get(fmt.Sprintf("%s/%s", path, c))
+		if err != nil {
+			return nil, err
+		}
+		var v []interface{}
+		if err := json.Unmarshal(data, &v); err != nil {
+			return nil, err
+		}
+		result[i] = [2]string{v[0].(string), v[1].(string)}
+	}
+
+	return result, nil
 }

@@ -19,6 +19,7 @@ type memoryStore struct {
 	sync.Mutex
 	keys      map[string]map[int64]string
 	callbacks map[string]map[string]string
+	results   map[string]map[string][][2]string
 }
 
 // NewMemoryStore returns a new MemoryStore.
@@ -26,6 +27,7 @@ func NewMemoryStore() Store {
 	m := &memoryStore{
 		keys:      make(map[string]map[int64]string),
 		callbacks: make(map[string]map[string]string),
+		results:   make(map[string]map[string][][2]string),
 	}
 
 	return m
@@ -313,6 +315,45 @@ func (m *memoryStore) DeleteCallback(dc, env, app, key, id string) error {
 	}
 	m.Unlock()
 	return nil
+}
+
+func (m *memoryStore) AddCallbackResult(dc, env, app, key, id, callback,
+	result string) error {
+
+	key = m.getKey(dc, env, app, key)
+	m.Lock()
+	if cs, ok := m.results[key]; ok {
+		if _, ok := cs[id]; ok {
+			cs[id] = append(cs[id], [2]string{callback, result})
+		} else {
+			cs[id] = [][2]string{[2]string{callback, result}}
+		}
+	} else {
+		m.results[key] = map[string][][2]string{
+			id: [][2]string{[2]string{callback, result}},
+		}
+	}
+	m.Unlock()
+	return nil
+}
+
+func (m *memoryStore) GetCallbackResult(dc, env, app, key, id string) (
+	[][2]string, error) {
+
+	key = m.getKey(dc, env, app, key)
+	m.Lock()
+	if cs, ok := m.results[key]; ok {
+		if v, ok := cs[id]; ok {
+			end := len(v)
+			start := end - 20
+			if start < 0 {
+				start = 0
+			}
+			return v[start:end], nil
+		}
+	}
+	m.Unlock()
+	return nil, ErrNotFound
 }
 
 func (m *memoryStore) Init(conf string) error {

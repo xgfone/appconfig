@@ -149,4 +149,23 @@ type Store interface {
 	//
 	// If id is not "", only delete the callback notification identified by id.
 	DeleteCallback(dc, env, app, key, id string) error
+
+	///////////////////////////////////////////////////////////////////////////
+	// Callback Notification Result
+
+	// AddCallbackResult adds the callback result into the store.
+	//
+	// If the callback is successful, result is "". Or it's the error string.
+	AddCallbackResult(dc, env, app, key, id, callback, result string) error
+
+	// GetCallbackResult returns the callback result.
+	//
+	// The result is an array, each element of which is two-tuples. The first
+	// is the callback address, and the second is the result. If the callback
+	// is successful, the result is "". Or it is the error string.
+	//
+	// Notice: There may be hundreds of the callback results. But they all are
+	// not returned overall. The number is decided by the implementation.
+	// In general, suggest most recent 20.
+	GetCallbackResult(dc, env, app, key, id string) ([][2]string, error)
 }
