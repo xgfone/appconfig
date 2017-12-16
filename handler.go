@@ -158,7 +158,8 @@ func GetAllApps(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return renderError(w, err)
 	}
-	return http2.JSON(w, http.StatusOK, map[string]interface{}{"total": total, "apps": v})
+	return http2.JSON(w, http.StatusOK,
+		map[string]interface{}{"total": total, "apps": v})
 }
 
 // GetAllKeys returns all keys in dc, env and app.
@@ -188,7 +189,8 @@ func GetAllKeys(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return renderError(w, err)
 	}
-	return http2.JSON(w, http.StatusOK, map[string]interface{}{"total": total, "keys": v})
+	return http2.JSON(w, http.StatusOK,
+		map[string]interface{}{"total": total, "keys": v})
 }
 
 // GetAllValues returns all values of the key in dc, env and app.
@@ -227,7 +229,8 @@ func GetAllValues(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return renderError(w, err)
 	}
-	return http2.JSON(w, http.StatusOK, map[string]interface{}{"total": total, "values": v})
+	return http2.JSON(w, http.StatusOK,
+		map[string]interface{}{"total": total, "values": v})
 }
 
 // DeleteDc deletes the whole dc.
