@@ -519,7 +519,7 @@ func (z *zkStore) AddCallbackResult(dc, env, app, key, id, cb, r string) error {
 }
 
 func (z *zkStore) GetCallbackResult(dc, env, app, key, id string) (
-	[][2]string, error) {
+	[][3]string, error) {
 
 	path := z.getCbResultPath(dc, env, app, key)
 	path = fmt.Sprintf("%s/%s", path, id)
@@ -537,7 +537,7 @@ func (z *zkStore) GetCallbackResult(dc, env, app, key, id string) (
 		cs = cs[start:end]
 	}
 
-	result := make([][2]string, len(cs))
+	result := make([][3]string, len(cs))
 	for i, c := range cs {
 		data, _, err := z.zk.Get(fmt.Sprintf("%s/%s", path, c))
 		if err != nil {
@@ -547,7 +547,7 @@ func (z *zkStore) GetCallbackResult(dc, env, app, key, id string) (
 		if err := json.Unmarshal(data, &v); err != nil {
 			return nil, err
 		}
-		result[i] = [2]string{v[0].(string), v[1].(string)}
+		result[i] = [3]string{c, v[0].(string), v[1].(string)}
 	}
 
 	return result, nil

@@ -400,25 +400,27 @@ func (s *sqlStore) DeleteCallback(dc, env, app, key, id string) error {
 }
 
 func (s *sqlStore) AddCallbackResult(dc, env, app, key, id, cb, r string) error {
-	q := "INSERT INTO `%s`(`dc`,`env`,`app`,`key`,`cbid`,`callback`,`result` VALUES(?,?,?,?,?,?)"
+	q := "INSERT INTO `%s`(`dc`,`env`,`app`,`key`,`cbid`,`callback`,`result`,`time` VALUES(?,?,?,?,?,?,?)"
 	sql := fmt.Sprintf(q, s.crtable)
-	_, err := s.engine.Exec(sql, dc, env, app, key, id, cb, r)
+	_, err := s.engine.Exec(sql, dc, env, app, key, id, cb, r, time.Now().Unix())
 	return err
 }
 
 func (s *sqlStore) GetCallbackResult(dc, env, app, key, id string) (
-	[][2]string, error) {
+	[][3]string, error) {
 
 	where := "`dc`=? AND `env`=? AND `app`=? AND `key`=? AND `cbid`=?"
-	vs, err := s.engine.Select("`callback`, `result`").Table(s.crtable).Where(
-		where, dc, env, app, key, id).Desc("`id`").Limit(20, 0).QueryString()
+	vs, err := s.engine.Select("`callback`, `result`, `time`").Table(
+		s.crtable).Where(where, dc, env, app, key, id).Desc("`time`").Limit(
+		20, 0).QueryInterface()
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([][2]string, len(vs))
+	result := make([][3]string, len(vs))
 	for i, v := range vs {
-		result[i] = [2]string{v["callback"], v["result"]}
+		result[i] = [3]string{fmt.Sprintf("%d", v["time"]),
+			v["callback"].(string), v["result"].(string)}
 	}
 	return result, nil
 }

@@ -1,6 +1,7 @@
 package store
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 	"sync"
@@ -19,7 +20,7 @@ type memoryStore struct {
 	sync.Mutex
 	keys      map[string]map[int64]string
 	callbacks map[string]map[string]string
-	results   map[string]map[string][][2]string
+	results   map[string]map[string][][3]string
 }
 
 // NewMemoryStore returns a new MemoryStore.
@@ -27,7 +28,7 @@ func NewMemoryStore() Store {
 	m := &memoryStore{
 		keys:      make(map[string]map[int64]string),
 		callbacks: make(map[string]map[string]string),
-		results:   make(map[string]map[string][][2]string),
+		results:   make(map[string]map[string][][3]string),
 	}
 
 	return m
@@ -321,16 +322,17 @@ func (m *memoryStore) AddCallbackResult(dc, env, app, key, id, callback,
 	result string) error {
 
 	key = m.getKey(dc, env, app, key)
+	value := [3]string{fmt.Sprintf("%d", time.Now().Unix()), callback, result}
 	m.Lock()
 	if cs, ok := m.results[key]; ok {
 		if _, ok := cs[id]; ok {
-			cs[id] = append(cs[id], [2]string{callback, result})
+			cs[id] = append(cs[id], value)
 		} else {
-			cs[id] = [][2]string{[2]string{callback, result}}
+			cs[id] = [][3]string{value}
 		}
 	} else {
-		m.results[key] = map[string][][2]string{
-			id: [][2]string{[2]string{callback, result}},
+		m.results[key] = map[string][][3]string{
+			id: [][3]string{value},
 		}
 	}
 	m.Unlock()
@@ -338,7 +340,7 @@ func (m *memoryStore) AddCallbackResult(dc, env, app, key, id, callback,
 }
 
 func (m *memoryStore) GetCallbackResult(dc, env, app, key, id string) (
-	[][2]string, error) {
+	[][3]string, error) {
 
 	key = m.getKey(dc, env, app, key)
 	m.Lock()

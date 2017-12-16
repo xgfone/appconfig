@@ -156,16 +156,20 @@ type Store interface {
 	// AddCallbackResult adds the callback result into the store.
 	//
 	// If the callback is successful, result is "". Or it's the error string.
+	//
+	// Notice: when adding the callback result, the implementation must record
+	// the time.
 	AddCallbackResult(dc, env, app, key, id, callback, result string) error
 
 	// GetCallbackResult returns the callback result.
 	//
-	// The result is an array, each element of which is two-tuples. The first
-	// is the callback address, and the second is the result. If the callback
-	// is successful, the result is "". Or it is the error string.
+	// The result is an array, each element of which is three-tuples. The first
+	// is the unixstamp time, the second is the callback address, and the second
+	// is the result. If the callback is successful, the result is "".
+	// Or it is the error string.
 	//
 	// Notice: There may be hundreds of the callback results. But they all are
 	// not returned overall. The number is decided by the implementation.
 	// In general, suggest most recent 20.
-	GetCallbackResult(dc, env, app, key, id string) ([][2]string, error)
+	GetCallbackResult(dc, env, app, key, id string) ([][3]string, error)
 }
