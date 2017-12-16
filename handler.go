@@ -3,13 +3,59 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/xgfone/appconfig/callback"
 	"github.com/xgfone/appconfig/store"
+	"github.com/xgfone/go-tools/lifecycle"
 	"github.com/xgfone/go-tools/net2/http2"
 )
 
-var backend store.Store
+var (
+	backend   store.Store
+	inCbChan  chan map[string][2]string
+	outCbChan chan map[string][2]string
+)
+
+func getCbKey(dc, env, app, key, id string) string {
+	return strings.Join([]string{dc, env, app, key, id}, "##")
+}
+
+func splitCbKey(_key string) (dc, env, app, key, id string) {
+	vs := strings.Split(_key, "##")
+	if len(vs) != 5 {
+		return
+	}
+	dc = vs[0]
+	env = vs[1]
+	app = vs[2]
+	key = vs[3]
+	id = vs[4]
+	return
+}
+
+func handleCbResult(out <-chan map[string][2]string) {
+	defer lifecycle.Stop()
+	for {
+		results := <-out
+		if len(results) == 0 {
+			continue
+		}
+
+		for k, rv := range results {
+			dc, env, app, key, id := splitCbKey(k)
+			cb := rv[0]
+			result := rv[1]
+
+			err := backend.AddCallbackResult(dc, env, app, key, id, cb, result)
+			if err != nil {
+				logger.Errorf("cannot add the callback result[%s]: %s", k, err)
+			}
+		}
+	}
+
+}
 
 // InitStore the backend store.
 func InitStore(storeName, conf string) error {
@@ -20,6 +66,11 @@ func InitStore(storeName, conf string) error {
 }
 
 func init() {
+	inCbChan = make(chan map[string][2]string, 1)
+	outCbChan = make(chan map[string][2]string, 1)
+	go callback.Notify(inCbChan, outCbChan)
+	go handleCbResult(outCbChan)
+
 	wrap := http2.ErrorHandler
 
 	r := mux.NewRouter()
@@ -49,6 +100,9 @@ func init() {
 	cb.Handle("/{dc}/{env}/{app}/{key}", wrap(GetCallback)).Methods("GET")
 	cb.Handle("/{dc}/{env}/{app}/{key}/{id}", wrap(AddCallback)).Methods("POST")
 	cb.Handle("/{dc}/{env}/{app}/{key}", wrap(DeleteCallback)).Methods("DELETE")
+
+	// Callback Notification Result
+	cb.Handle("/{dc}/{env}/{app}/{key}/{id}", wrap(GetCallbackResult)).Methods("GET")
 
 	handler = r
 }
@@ -126,9 +180,30 @@ func UploadConfig(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	vs := mux.Vars(r)
-	err = backend.SetKeyValue(vs["dc"], vs["env"], vs["app"], vs["key"], string(v))
+	dc := vs["dc"]
+	env := vs["env"]
+	app := vs["app"]
+	key := vs["key"]
+	value := string(v)
+
+	err = backend.SetKeyValue(dc, env, app, key, value)
 	printLog(err, "Upload the app config, dc=%s, env=%s, app=%s, key=%s",
-		vs["dc"], vs["env"], vs["app"], vs["key"])
+		dc, env, app, key)
+
+	// Notify the apps that the value has been changed.
+	if err == nil {
+		var cs map[string]string
+		cs, err = backend.GetCallback(dc, env, app, key)
+		if err == nil && len(cs) > 0 {
+			info := make(map[string][2]string)
+			for id, cb := range cs {
+				key := getCbKey(dc, env, app, key, id)
+				info[key] = [2]string{cb, value}
+			}
+			inCbChan <- info
+		}
+	}
+
 	return renderError(w, err)
 }
 
@@ -314,4 +389,16 @@ func DeleteCallback(w http.ResponseWriter, r *http.Request) (err error) {
 		return renderError(w, err)
 	}
 	return nil
+}
+
+// GetCallbackResult returns some the callback results.
+func GetCallbackResult(w http.ResponseWriter, r *http.Request) (err error) {
+	vs := mux.Vars(r)
+	v, err := backend.GetCallbackResult(vs["dc"], vs["env"], vs["app"],
+		vs["key"], vs["id"])
+	if err != nil {
+		return renderError(w, err)
+	}
+
+	return http2.JSON(w, http.StatusOK, map[string]interface{}{"result": v})
 }
