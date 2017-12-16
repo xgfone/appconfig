@@ -129,4 +129,24 @@ type Store interface {
 	//
 	// from and to is the start and end time to filte the values.
 	GetAllValues(dc, env, app, key string, page, number, from, to int64) (int64, map[int64]string, error)
+
+	///////////////////////////////////////////////////////////////////////////
+	// Callback Notification
+
+	// AddCallback adds a callback notification for a certain key of app
+	// in dc and env.
+	AddCallback(dc, env, app, key, id, callback string) error
+
+	// GetCallback returns all the callback notifications of a key of app
+	// in dc and env.
+	//
+	// The result is a map, the key of which is the registered id,
+	// and the value of that is the callback value.
+	GetCallback(dc, env, app, key string) (map[string]string, error)
+
+	// DeleteCallback deletes all the callback notifications of the key of app
+	// in dc and env.
+	//
+	// If id is not "", only delete the callback notification identified by id.
+	DeleteCallback(dc, env, app, key, id string) error
 }

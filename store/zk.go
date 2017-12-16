@@ -69,9 +69,17 @@ func NewZkStore() Store {
 func (z *zkStore) path(f string, args ...interface{}) string {
 	path := fmt.Sprintf(f, args...)
 	if z.root != "/" {
-		return z.root + path
+		return fmt.Sprintf("%s/config%s", z.root, path)
 	}
-	return path
+	return "/config" + path
+}
+
+func (z *zkStore) cbPath(f string, args ...interface{}) string {
+	path := fmt.Sprintf(f, args...)
+	if z.root != "/" {
+		return fmt.Sprintf("%s/callback%s", z.root, path)
+	}
+	return "/callback" + path
 }
 
 func (z *zkStore) Init(conf string) (err error) {
@@ -230,7 +238,10 @@ func (z *zkStore) deletePathRecursion(path string) error {
 	}
 
 	// Delete the current path.
-	return z.zk.Delete(path, -1)
+	if err := z.zk.Delete(path, -1); err != zk.ErrNoNode {
+		return err
+	}
+	return nil
 }
 
 // GetAllDcAndEnvs returns all dc and env. The key is dc, and the value is
@@ -423,4 +434,53 @@ func (z *zkStore) GetAllValues(dc, env, app, key string, page, number, from,
 	}
 
 	return total, values, nil
+}
+
+func (z *zkStore) getCbPath(dc, env, app, key string) string {
+	return z.cbPath("/%s|%s|%s|%s", dc, env, app, key)
+}
+
+func (z *zkStore) AddCallback(dc, env, app, key, id, callback string) error {
+	path := z.getCbPath(dc, env, app, key)
+	if err := z.ensurePath(path); err != nil {
+		return err
+	}
+
+	path = fmt.Sprintf("%s/%s", path, id)
+	_, err := z.zk.Create(path, []byte(callback), z.flags, z.acl)
+	return err
+}
+
+func (z *zkStore) GetCallback(dc, env, app, key string) (map[string]string, error) {
+	path := z.getCbPath(dc, env, app, key)
+	cs, _, err := z.zk.Children(path)
+	if err != zk.ErrNoNode {
+		return nil, ErrNotFound
+	}
+	if len(cs) == 0 {
+		return map[string]string{}, nil
+	}
+
+	result := make(map[string]string, len(cs))
+	for _, c := range cs {
+		data, _, err := z.zk.Get(fmt.Sprintf("%s/%s", path, c))
+		if err != nil {
+			return nil, err
+		}
+		result[c] = string(data)
+	}
+
+	return result, nil
+}
+
+func (z *zkStore) DeleteCallback(dc, env, app, key, id string) error {
+	path := z.getCbPath(dc, env, app, key)
+	if id != "" {
+		path = fmt.Sprintf("%s/%s", path, id)
+	}
+	err := z.zk.Delete(path, -1)
+	if err == zk.ErrNoNode {
+		return nil
+	}
+	return err
 }

@@ -17,18 +17,23 @@ func init() {
 
 // sqlStore is the store backend based on SQL.
 type sqlStore struct {
-	driver string
-	table  string
-	engine *xorm.Engine
+	driver  string
+	table   string
+	cbtable string
+	engine  *xorm.Engine
 }
 
 // NewSQLStore returns a new store backend based on SQL.
 func NewSQLStore(driver string, table ...string) Store {
 	tableName := "appconfig"
-	if len(table) > 0 {
+	cbtableName := "appcallback"
+	if len(table) == 1 {
 		tableName = table[0]
+	} else if len(table) > 1 {
+		tableName = table[0]
+		cbtableName = table[1]
 	}
-	return &sqlStore{driver: driver, table: tableName}
+	return &sqlStore{driver: driver, table: tableName, cbtable: cbtableName}
 }
 
 func (s *sqlStore) Init(conf string) (err error) {
@@ -101,16 +106,16 @@ func (s *sqlStore) Init(conf string) (err error) {
 //
 // If the time is 0 or negative, it should return the latest value.
 // Or it should return the value at the provided time.
-func (s *sqlStore) AppGetConfig(dc, env, app, key string, _time int64) (v string,
-	err error) {
+func (s *sqlStore) AppGetConfig(dc, env, app, key string, _time int64) (
+	v string, err error) {
 
 	session := s.engine.Select("`value`").Table(s.table)
 	if _time > 0 {
-		session = session.Where("`dc`=? AND `env`=? AND `app`=? AND `key`=? AND `time`=?",
-			dc, env, app, key, _time)
+		where := "`dc`=? AND `env`=? AND `app`=? AND `key`=? AND `time`=?"
+		session = session.Where(where, dc, env, app, key, _time)
 	} else {
-		session = session.Where("`dc`=? AND `env`=? AND `app`=? AND `key`=?",
-			dc, env, app, key).Desc("`time`")
+		where := "`dc`=? AND `env`=? AND `app`=? AND `key`=?"
+		session = session.Where(where, dc, env, app, key).Desc("`time`")
 	}
 
 	if ok, err := session.Get(&v); err != nil {
@@ -247,9 +252,6 @@ func (s *sqlStore) GetAllApps(dc, env, search string, page, number int64) (
 	if err != nil {
 		return 0, nil, err
 	}
-	if len(vs) == 0 {
-		return 0, []string{}, nil
-	}
 	apps := make([]string, len(vs))
 	for i, m := range vs {
 		apps[i] = m["app"]
@@ -295,9 +297,6 @@ func (s *sqlStore) GetAllKeys(dc, env, app, search string, page,
 		args...).QueryString()
 	if err != nil {
 		return 0, nil, err
-	}
-	if len(vs) == 0 {
-		return 0, []string{}, nil
 	}
 	keys := make([]string, len(vs))
 	for i, m := range vs {
@@ -345,13 +344,46 @@ func (s *sqlStore) GetAllValues(dc, env, app, key string, page, number, from,
 	if err != nil {
 		return 0, nil, err
 	}
-	if len(vs) == 0 {
-		return 0, map[int64]string{}, nil
-	}
 	values := make(map[int64]string, len(vs))
 	for _, m := range vs {
 		values[m["time"].(int64)] = string(m["value"].([]byte))
 	}
 
 	return total, values, nil
+}
+
+func (s *sqlStore) AddCallback(dc, env, app, key, id, callback string) error {
+	sql := "INSERT INTO `%s`(`dc`, `env`, `app`, `key`, `id`, `callback`) VALUES(?, ?, ?, ?, ?, ?)"
+	sql = fmt.Sprintf(sql, s.cbtable)
+	_, err := s.engine.Exec(sql, dc, env, app, key, id, callback)
+	return err
+}
+
+func (s *sqlStore) GetCallback(dc, env, app, key string) (map[string]string,
+	error) {
+
+	where := "`dc`=? AND `env`=? AND `app`=? AND `key`=?"
+	vs, err := s.engine.Select("`id`, `callback`").Table(s.cbtable).Where(where,
+		dc, env, app, key).QueryString()
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]string, len(vs))
+	for _, v := range vs {
+		result[v["id"]] = v["callback"]
+	}
+	return result, nil
+}
+
+func (s *sqlStore) DeleteCallback(dc, env, app, key, id string) error {
+	where := "`dc`=? AND `env`=? AND `app`=? AND `key`=?"
+	args := []interface{}{dc, env, app, key}
+	if id != "" {
+		where += " AND `id`=?"
+		args = append(args, id)
+	}
+	sql := fmt.Sprintf("DELETE FROM `%s` WHERE %s", s.cbtable, where)
+	_, err := s.engine.Exec(sql, args...)
+	return err
 }

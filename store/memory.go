@@ -17,13 +17,15 @@ func init() {
 // memoryStore is the memory backend store, which is only used to test.
 type memoryStore struct {
 	sync.Mutex
-	keys map[string]map[int64]string
+	keys      map[string]map[int64]string
+	callbacks map[string]map[string]string
 }
 
 // NewMemoryStore returns a new MemoryStore.
 func NewMemoryStore() Store {
 	m := &memoryStore{
-		keys: make(map[string]map[int64]string),
+		keys:      make(map[string]map[int64]string),
+		callbacks: make(map[string]map[string]string),
 	}
 
 	return m
@@ -271,6 +273,46 @@ func (m *memoryStore) GetAllValues(dc, env, app, key string, page, number, from,
 		_values[_t] = values[_t]
 	}
 	return total, _values, nil
+}
+
+func (m *memoryStore) AddCallback(dc, env, app, key, id, callback string) error {
+	key = m.getKey(dc, env, app, key)
+	m.Lock()
+	if cs, ok := m.callbacks[key]; ok {
+		cs[id] = callback
+	} else {
+		m.callbacks[key] = map[string]string{id: callback}
+	}
+	m.Unlock()
+	return nil
+}
+
+func (m *memoryStore) GetCallback(dc, env, app, key string) (map[string]string, error) {
+	key = m.getKey(dc, env, app, env)
+	m.Lock()
+	s, ok := m.callbacks[key]
+	m.Unlock()
+	if ok {
+		return s, nil
+	}
+	return nil, ErrNotFound
+}
+
+func (m *memoryStore) DeleteCallback(dc, env, app, key, id string) error {
+	key = m.getKey(dc, env, app, key)
+	m.Lock()
+	if cs, ok := m.callbacks[key]; ok {
+		if id == "" {
+			delete(cs, id)
+			if len(cs) == 0 {
+				delete(m.callbacks, key)
+			}
+		} else {
+			delete(m.callbacks, key)
+		}
+	}
+	m.Unlock()
+	return nil
 }
 
 func (m *memoryStore) Init(conf string) error {
