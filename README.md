@@ -291,7 +291,9 @@ Body is a `JSON` string, the key of which is the id of the registered callback, 
 
 `id` is the identifier of the callback, which should be unique under `/{dc}/{env}/{app}/{key}`. The limit is the same as `dc`, `env`, `app` or `key`.
 
-Notice: Body is the callback value. The current version only supports the HTTP URL by `POST`. When invoking the callback by HTTP POST, The body is the changed new value. If you have many callbacks and want to distinguish them, you need to add `key` or `id` to the URL.
+Notice: Body is the callback value. The current version only supports the HTTP URL by `POST`, that's, the callback should be a HTTP URL that supports the request method `POST`.
+
+When invoking the callback by HTTP POST, The body is the changed new value. If you have many callbacks and want to distinguish them, you need to add `key` or `id` to the URL.
 
 #### Response
 None.
