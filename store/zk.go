@@ -102,6 +102,7 @@ func (z *zkStore) Init(conf string) (err error) {
 
 	ss := strings.Split(conf, "&")
 	if len(ss) == 1 {
+		conf = strings.TrimLeft(conf, "addr=")
 		adds = strings.Split(conf, ",")
 	} else {
 		for _, s := range ss {
