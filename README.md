@@ -109,7 +109,7 @@ For `APP`, it should only use three apis:
 
 **Suggest:** If the app want to watch the change of the configuration of a key, it maybe register a callback for it when app starts, and delete the callback before the app exits.
 
-**Notice:** `dc`, `env`, `app`, `key` should be a plain string, which must not contain any character in `/&=?%#+\`. In general, it should only use `a-z`, `A-Z`, `0-9` and `-_`. Certainly, it is not mandatory, you can use other characters, such as `@$^:`. Also, you maybe use Chinese.
+**Notice:** `dc`, `env`, `app`, `key` should be a plain string, which must not contain any character in `/&=?%#+\`. In general, it should only use `a-z`, `A-Z`, `0-9` and `-_`. Certainly, they are not mandatory, you can use other characters, such as `@$^:`. Also, you maybe use Chinese.
 
 
 ### 1. App Get the Configuration of a Key
