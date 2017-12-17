@@ -17,7 +17,7 @@
 ## Todo List
 
 - [x] RESTfull API.
-- [x] Many Data-Center and many Environment.
+- [x] Many Data-Center(`dc`) and many Environment(`env`).
 - [x] Notify the changed configuration to the watching app asynchronously by the callback way with `HTTP`.
 - [x] Backend store `Memory` implementation, which is only used to test.
 - [x] Backend store `ZooKeeper` implementation.
@@ -108,6 +108,8 @@ For `APP`, it should only use three apis:
 3. Delete the callbacks registered by it. (API 14.)
 
 **Suggest:** If the app want to watch the change of the configuration of a key, it maybe register a callback for it when app starts, and delete the callback before the app exits.
+
+**Notice:** `dc`, `env`, `app`, `key` should be a plain string, which must not contain any character in `/&=?%#\`. In general, it should only use `a-z`, `A-Z`, `0-9` and `-_`. Certainly, it is not mandatory, you can use other characters, such as `@$^:`. Also, you maybe use Chinese.
 
 
 ### 1. App Get the Configuration of a Key
@@ -287,6 +289,8 @@ Body is a `JSON` string, the key of which is the id of the registered callback, 
 #### Request
 `POST /callback/{dc}/{env}/{app}/{key}/{id}`
 
+`id` is the identifier of the callback, which should be unique under `/{dc}/{env}/{app}/{key}`. The limit is the same as `dc`, `env`, `app` or `key`.
+
 Notice: Body is the callback value. The current version only supports the HTTP URL.
 
 #### Response
@@ -298,7 +302,7 @@ None.
 #### Request
 `DELETE /callback/{dc}/{env}/{app}/{key}[?id={id}]`
 
-If giving the query argument `id`, only delete the callback specified by the id. Or delete all the callbacks.
+`id` is the identifier of the callback. If giving the query argument `id`, only delete the callback specified by the id. Or delete all the callbacks.
 
 #### Response
 None.
@@ -310,6 +314,8 @@ If the callback does not exist, do nothing.
 
 #### Request
 `GET /callback/{dc}/{env}/{app}/{key}/{id}`
+
+`id` is the identifier of the callback.
 
 #### Response
 
