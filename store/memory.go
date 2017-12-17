@@ -364,14 +364,14 @@ func (m *memoryStore) Init(conf string) error {
 
 func (m *memoryStore) getPrefix(ss []string) string {
 	ss = append(ss, "")
-	return strings.Join(ss, "|")
+	return strings.Join(ss, "/")
 }
 
 func (m *memoryStore) getKey(dc, env, app, key string) string {
-	return strings.Join([]string{dc, env, app, key}, "|")
+	return strings.Join([]string{dc, env, app, key}, "/")
 }
 
 func (m *memoryStore) splitKey(key string) (string, string, string, string) {
-	vs := strings.Split(key, "|")
+	vs := strings.Split(key, "/")
 	return vs[0], vs[1], vs[2], vs[3]
 }

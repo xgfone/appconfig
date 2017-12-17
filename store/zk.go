@@ -447,7 +447,7 @@ func (z *zkStore) GetAllValues(dc, env, app, key string, page, number, from,
 }
 
 func (z *zkStore) getCbPath(dc, env, app, key string) string {
-	return z.cbPath("/%s|%s|%s|%s", dc, env, app, key)
+	return z.cbPath("/%s#%s#%s#%s", dc, env, app, key)
 }
 
 func (z *zkStore) AddCallback(dc, env, app, key, id, callback string) error {
@@ -496,7 +496,7 @@ func (z *zkStore) DeleteCallback(dc, env, app, key, id string) error {
 }
 
 func (z *zkStore) getCbResultPath(dc, env, app, key string) string {
-	return z.cbResultPath("/%s|%s|%s|%s", dc, env, app, key)
+	return z.cbResultPath("/%s#%s#%s#%s", dc, env, app, key)
 }
 
 func (z *zkStore) AddCallbackResult(dc, env, app, key, id, cb, r string) error {

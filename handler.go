@@ -19,11 +19,11 @@ var (
 )
 
 func getCbKey(dc, env, app, key, id string) string {
-	return strings.Join([]string{dc, env, app, key, id}, "##")
+	return strings.Join([]string{dc, env, app, key, id}, "/")
 }
 
 func splitCbKey(_key string) (dc, env, app, key, id string) {
-	vs := strings.Split(_key, "##")
+	vs := strings.Split(_key, "/")
 	if len(vs) != 5 {
 		return
 	}
