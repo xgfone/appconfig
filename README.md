@@ -7,7 +7,7 @@
 
 - Simple RESTfull API.
 - App uses the key-value configuration. And support many keys for an app.
-- No dependency, but the backend store, such as `ZooKeeper` or `Mysql`.
+- No dependency, but the backend store, such as `ZooKeeper` or `MySQL`.
 - Notify the APP asynchronously when the watched configuration has been changed.
 - Support many Data-Center and many Environment.
 - Simple deployment, only a binary program.
