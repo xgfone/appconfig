@@ -56,6 +56,8 @@ Usage of ./appconfig:
         Print the version and exit.
 ```
 
+**Notice**: For HA and LB, you can run many instances, only if they use the same backend store.
+
 
 ### Use `Memory` as Backend Store
 ```bash
