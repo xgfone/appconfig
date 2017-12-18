@@ -135,7 +135,20 @@ func (z *zkStore) Init(conf string) (err error) {
 	}
 
 	z.zk, err = NewZkConn(adds, timeout, ZkLoggerFunc(log.Infof))
+	if err != nil {
+		return
+	}
 	z.root = root
+
+	// Ensure that the path exists.
+	if err = z.ensurePath(z.path("")); err != nil {
+		return
+	}
+	if err = z.ensurePath(z.cbPath("")); err != nil {
+		return
+	}
+	err = z.ensurePath(z.cbResultPath(""))
+
 	return
 }
 
@@ -257,7 +270,7 @@ func (z *zkStore) deletePathRecursion(path string) error {
 // GetAllDcAndEnvs returns all dc and env. The key is dc, and the value is
 // the all envs in the dc.
 func (z *zkStore) GetAllDcAndEnvs() (map[string][]string, error) {
-	dcs, _, err := z.zk.Children(z.root)
+	dcs, _, err := z.zk.Children(z.path(""))
 	if err != nil {
 		return nil, err
 	}
