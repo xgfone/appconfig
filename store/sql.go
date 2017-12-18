@@ -391,7 +391,7 @@ func (s *sqlStore) GetCallback(dc, env, app, key string) (map[string]string,
 
 	result := make(map[string]string, len(vs))
 	for _, v := range vs {
-		result[v["id"]] = v["callback"]
+		result[v["cbid"]] = v["callback"]
 	}
 	return result, nil
 }
