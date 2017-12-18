@@ -116,7 +116,7 @@ For `APP`, it should only use three apis:
 
 **Suggest:** If the app want to watch the change of the configuration of a key, it maybe register a callback for it when app starts, and delete the callback before the app exits.
 
-**Notice:** `dc`, `env`, `app`, `key` should be a plain string, which must not contain any character in `/&=?%#+\`. In general, it should only use `a-z`, `A-Z`, `0-9` and `-_`. Certainly, they are not mandatory, you can use other characters, such as `@$^:`. Also, you maybe use Chinese.
+**Notice:** `dc`, `env`, `app`, `key` should be a plain string, which must not contain any character in `/&=?%#+\`. In general, it should only use `a-z`, `A-Z`, `0-9` and `-_`. Certainly, they are not mandatory, you can use other characters, such as `@$^:`. Also, you maybe use Chinese. For the length limit, it's no limit in principle, which depends on the backend store. For example, the default SQL model, the maximum length of `dc`, `env`, `app` is `32`, the maximum length of `key` and `id` of the callback is `64`, the maximum length of `callback` and `result` of the callback is `256`.
 
 
 ### 1. App Get the Configuration of a Key
@@ -296,7 +296,7 @@ Body is a `JSON` string, the key of which is the id of the registered callback, 
 #### Request
 `POST /callback/{dc}/{env}/{app}/{key}/{id}`
 
-`id` is the identifier of the callback, which should be unique under `/{dc}/{env}/{app}/{key}`. The limit is the same as `dc`, `env`, `app` or `key`.
+`id` is the identifier of the callback, which should be unique under `/{dc}/{env}/{app}/{key}`. The limit is the same as `dc`, `env`, `app` or `key`. For a key, there may be many apps to watch it. So the `id` is used to distinguish them.
 
 Notice: Body is the callback value. The current version only supports the HTTP URL by `POST`, that's, the callback should be a HTTP URL that supports the request method `POST`.
 
