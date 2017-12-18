@@ -16,7 +16,7 @@ func init() {
 }
 
 func httpCallback(cb, value string) error {
-	if !strings.HasPrefix(cb, "http://") || !strings.HasPrefix(cb, "https://") {
+	if !strings.HasPrefix(cb, "http://") && !strings.HasPrefix(cb, "https://") {
 		return ErrNotSupport
 	}
 

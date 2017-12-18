@@ -30,7 +30,7 @@ type CallbackFunc func(callback string, value string) error
 
 // Callback implements the interface Callback.
 func (c CallbackFunc) Callback(callback, value string) error {
-	return nil
+	return c(callback, value)
 }
 
 // RegisterCallback registers a callback notification handler with a name.
