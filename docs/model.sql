@@ -18,7 +18,7 @@ CREATE TABLE `appcallback` (
     `app` VARCHAR(32) NOT NULL COMMENT 'The name of the application',
     `key` VARCHAR(64) NOT NULL COMMENT 'The name of the key of app',
     `cbid` VARCHAR(64) NOT NULL COMMENT 'The id of the callback',
-    `callback` VARCHAR(128) NOT NULL COMMENT 'The address of the callback, such as HTTP URL',
+    `callback` VARCHAR(256) NOT NULL COMMENT 'The address of the callback, such as HTTP URL',
 
     PRIMARY KEY (`id`)
 )
@@ -31,7 +31,7 @@ CREATE TABLE `appresult` (
     `app` VARCHAR(32) NOT NULL COMMENT 'The name of the application',
     `key` VARCHAR(64) NOT NULL COMMENT 'The name of the key of app',
     `cbid` VARCHAR(64) NOT NULL COMMENT 'The id of the callback',
-    `callback` VARCHAR(128) NOT NULL COMMENT 'The address of the callback, such as HTTP URL',
+    `callback` VARCHAR(256) NOT NULL COMMENT 'The address of the callback, such as HTTP URL',
     `result` VARCHAR(256) NOT NULL DEFAULT '' COMMENT 'The result of the callback. If successfully, it is ""; or it is the error reason.',
     `time` INTEGER NOT NULL COMMENT 'The unixstamp time when the record is inserted.',
 
