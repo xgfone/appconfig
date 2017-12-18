@@ -477,8 +477,10 @@ func (z *zkStore) AddCallback(dc, env, app, key, id, callback string) error {
 func (z *zkStore) GetCallback(dc, env, app, key string) (map[string]string, error) {
 	path := z.getCbPath(dc, env, app, key)
 	cs, _, err := z.zk.Children(path)
-	if err != zk.ErrNoNode {
+	if err == zk.ErrNoNode {
 		return nil, ErrNotFound
+	} else if err != nil {
+		return nil, err
 	}
 	if len(cs) == 0 {
 		return map[string]string{}, nil
