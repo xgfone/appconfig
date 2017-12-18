@@ -78,7 +78,10 @@ For `ZooKeeper` backend store, the config option `store` and `conf` must be give
 3. **`timeout`**: The timeout to connect to ZooKeeper, the unit of which is second. The default is 3.
 
 
-Notice: If there is no any option name to be specified, it is the addess list by default, such as `-conf "10.241.230.105,10.241.230.106,10.241.230.107"` is equal to `-conf "addr=10.241.230.105,10.241.230.106,10.241.230.107"`.
+Notice:
+
+- If there is no any option name to be specified, it is the addess list by default, such as `-conf "10.241.230.105,10.241.230.106,10.241.230.107"` is equal to `-conf "addr=10.241.230.105,10.241.230.106,10.241.230.107"`.
+- The ZooKeeper implementation uses the sub-directories: `config` for the key-value configuration of the app, `callback` for the callback information of the configuration, `cbresult` for the result of the callback. **This implementation will create the sub-directories automatically when the program starts. If failed to create them, the program exits and prints the error.**
 
 
 ### Use `MySQL` as Backend Store
@@ -94,7 +97,11 @@ On the basis of `DSN`, the manager adds three new options:
 2. **`max_idle_conn`**: The maximum number of connections in the idle connection pool. The default is `2`.
 3. **`show_sql`**: It's a bool. If true, it will print the executed RAW SQL. The default is false. For `t`, `T`, `1`, `true`, `True`, `TRUE`, it's true. For `f`, `F`, `0`, `false`, `False`, `FALSE`, it's false.
 
-Notice: If the MySQL server has set the idle timeout of the client connection, suggest to add the option `timeout`, and its value should be less than the server setting value.
+Notice:
+
+- If the MySQL server has set the idle timeout of the client connection, suggest to add the option `timeout`, and its value should be less than the server setting value.
+- The MySQL implementation uses three tables: `appconfig` for the key-value configuration of the app, `appcallback` for the callback information of the configuration, `appresult` for the result of the callback.
+- You should create the three tables before running the program. For the SQL model, refer to [here](https://github.com/xgfone/appconfig/blob/master/docs/model.sql).
 
 
 ## V1 API
