@@ -110,9 +110,9 @@ The current api is `v1`. The api below is under the prefix `/v1`, such as `/v1/a
 
 For `APP`, it should only use three apis:
 
-1. Get the configuration of a key. (API 1.)
-2. Register a callback to watch the change of the configuration of a key. (API 13.)
-3. Delete the callbacks registered by it. (API 14.)
+1. Get the configuration of a key. ([API 1.](https://github.com/xgfone/appconfig#1-app-get-the-configuration-of-a-key))
+2. Register a callback to watch the change of the configuration of a key. ([API 13.](https://github.com/xgfone/appconfig#13-add-the-callback-to-watch-a-certain-key))
+3. Delete the callbacks registered by it. ([API 14.](https://github.com/xgfone/appconfig#14-delete-the-callback-of-a-certain-key))
 
 **Suggest:** If the app want to watch the change of the configuration of a key, it maybe register a callback for it when app starts, and delete the callback before the app exits.
 
