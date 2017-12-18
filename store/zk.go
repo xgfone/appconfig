@@ -503,7 +503,8 @@ func (z *zkStore) DeleteCallback(dc, env, app, key, id string) error {
 	if id != "" {
 		path = fmt.Sprintf("%s/%s", path, id)
 	}
-	err := z.zk.Delete(path, -1)
+
+	err := z.deletePathRecursion(path)
 	if err == zk.ErrNoNode {
 		return nil
 	}
