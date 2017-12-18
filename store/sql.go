@@ -429,7 +429,7 @@ func (s *sqlStore) GetCallbackResult(dc, env, app, key, id string) (
 	result := make([][3]string, len(vs))
 	for i, v := range vs {
 		result[i] = [3]string{fmt.Sprintf("%d", v["time"]),
-			v["callback"].(string), v["result"].(string)}
+			string(v["callback"].([]byte)), string(v["result"].([]byte))}
 	}
 	return result, nil
 }
