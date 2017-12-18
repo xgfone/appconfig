@@ -373,6 +373,8 @@ func AddCallback(w http.ResponseWriter, r *http.Request) (err error) {
 	vs := mux.Vars(r)
 	err = backend.AddCallback(vs["dc"], vs["env"], vs["app"], vs["key"],
 		vs["id"], string(body))
+	printLog(err, "Add the callback: dc=%s, env=%s, app=%s, key=%s, id=%s",
+		vs["dc"], vs["env"], vs["app"], vs["key"], vs["id"])
 	if err != nil {
 		return renderError(w, err)
 	}
@@ -385,6 +387,8 @@ func DeleteCallback(w http.ResponseWriter, r *http.Request) (err error) {
 	id := r.URL.Query().Get("id")
 	vs := mux.Vars(r)
 	err = backend.DeleteCallback(vs["dc"], vs["env"], vs["app"], vs["key"], id)
+	printLog(err, "Delete the callback: dc=%s, env=%s, app=%s, key=%s, id=%s",
+		vs["dc"], vs["env"], vs["app"], vs["key"], id)
 	if err != nil {
 		return renderError(w, err)
 	}
