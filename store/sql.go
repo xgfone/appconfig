@@ -409,7 +409,7 @@ func (s *sqlStore) DeleteCallback(dc, env, app, key, id string) error {
 }
 
 func (s *sqlStore) AddCallbackResult(dc, env, app, key, id, cb, r string) error {
-	q := "INSERT INTO `%s`(`dc`,`env`,`app`,`key`,`cbid`,`callback`,`result`,`time` VALUES(?,?,?,?,?,?,?)"
+	q := "INSERT INTO `%s`(`dc`,`env`,`app`,`key`,`cbid`,`callback`,`result`,`time`) VALUES(?,?,?,?,?,?,?,?)"
 	sql := fmt.Sprintf(q, s.crtable)
 	_, err := s.engine.Exec(sql, dc, env, app, key, id, cb, r, time.Now().Unix())
 	return err
