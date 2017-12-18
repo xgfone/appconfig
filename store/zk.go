@@ -242,7 +242,11 @@ func (z *zkStore) DeleteConfig(dc, env, app, key string, _time int64) error {
 		}
 	}
 
-	return z.deletePathRecursion(path)
+	err := z.deletePathRecursion(path)
+	if err == zk.ErrNoNode {
+		return nil
+	}
+	return err
 }
 
 func (z *zkStore) deletePathRecursion(path string) error {
