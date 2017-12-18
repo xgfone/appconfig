@@ -21,7 +21,7 @@
 - [x] Notify the changed configuration to the watching app asynchronously by the callback way with `HTTP`.
 - [x] Backend store `Memory` implementation, which is only used to test.
 - [x] Backend store `ZooKeeper` implementation.
-- [x] Backend store `Mysql` implementation.
+- [x] Backend store `MySQL` implementation.
 - [ ] Backend store `Redis` implementation.
 - [ ] Backend store `Etcd` implementation.
 - [ ] Web manager interface.
