@@ -25,6 +25,7 @@
 - [ ] Backend store `Redis` implementation.
 - [ ] Backend store `Etcd` implementation.
 - [ ] Web manager interface.
+- [ ] Authentication and Authorization.
 
 
 ## Run
