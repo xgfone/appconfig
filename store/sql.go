@@ -140,8 +140,17 @@ func (s *sqlStore) AppGetConfig(dc, env, app, key string, _time int64) (
 
 // CreateDcAndEnv creates the new dc and env.
 func (s *sqlStore) CreateDcAndEnv(dc, env string) error {
+	v, err := s.engine.Select("`id`").Table(s.table).Where("`dc`=? AND `env`=?",
+		dc, env).Limit(1).QueryString()
+	if err != nil {
+		return err
+	}
+	if len(v) > 0 {
+		return nil
+	}
+
 	sql := fmt.Sprintf("INSERT INTO `%s`(`dc`, `env`) VALUES (?, ?)", s.table)
-	_, err := s.engine.Exec(sql, dc, env)
+	_, err = s.engine.Exec(sql, dc, env)
 	return err
 }
 
